@@ -1,0 +1,10 @@
+package ilgulee.com.javanewsapirxjava.data.db.entity
+
+import com.google.gson.annotations.SerializedName
+
+data class Source(
+        @SerializedName("id")
+        val id: String?,
+        @SerializedName("name")
+        val name: String?
+)
