@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/navigation_home">
+
+    <fragment
+        android:id="@+id/navigation_home"
+        android:name="ilgulee.com.javanewsapirxjava.ui.HomeFragment"
+        android:label="Home"
+        tools:layout="@layout/home_fragment" />
+    <fragment
+        android:id="@+id/navigation_dashboard"
+        android:name="ilgulee.com.javanewsapirxjava.ui.DashboardFragment"
+        android:label="Dashboard"
+        tools:layout="@layout/dashboard_fragment" />
+    <fragment
+        android:id="@+id/navigation_notifications"
+        android:name="ilgulee.com.javanewsapirxjava.ui.NotificationsFragment"
+        android:label="Notifications"
+        tools:layout="@layout/notifications_fragment" />
+</navigation>
