@@ -25,6 +25,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import ilgulee.com.javanewsapirxjava.NewsApp;
 import ilgulee.com.javanewsapirxjava.R;
+import ilgulee.com.javanewsapirxjava.data.db.ArticleDao;
+import ilgulee.com.javanewsapirxjava.data.db.ArticleRoomDatabase;
 import ilgulee.com.javanewsapirxjava.data.db.entity.Article;
 import ilgulee.com.javanewsapirxjava.data.network.CurrentHeadlineResponse;
 import ilgulee.com.javanewsapirxjava.data.network.NewsApiService;
@@ -42,6 +44,8 @@ public class HomeFragment extends Fragment {
     private List<Article> mArticles;
     private TextView mNoData;
     private HeadlineAdapter mAdapter;
+    private ArticleRoomDatabase db;
+    private ArticleDao mArticleDao;
 
     public static HomeFragment newInstance() {
         return new HomeFragment();
@@ -53,6 +57,8 @@ public class HomeFragment extends Fragment {
         mArticles = new ArrayList<>();
         ((NewsApp) getActivity().getApplicationContext()).getAppComponent().inject(this);
         newsApiService = mRetrofit.create(NewsApiService.class);
+        db = ArticleRoomDatabase.getINSTANCE(getActivity().getApplication());
+        mArticleDao = db.mArticleDao();
     }
 
     @Override
@@ -73,16 +79,25 @@ public class HomeFragment extends Fragment {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         newsApiService.getHeadlines("us")
+//                .flatMap(i-> Flowable.<CurrentHeadlineResponse>error(new RuntimeException("test crash for fallback")))
+                .doOnNext(i -> {
+                    mArticleDao.deleteAll();
+                    Log.d(TAG, "onActivityCreated: DB cleared");
+                })
                 .subscribeOn(Schedulers.io())
                 .map(CurrentHeadlineResponse::getArticles)
                 .flatMap(Flowable::fromIterable)
-                .doOnNext(article -> mArticles.add(article))
+                .doOnNext(article -> {
+                    mArticles.add(article);
+                    mArticleDao.insertHeadline(article);
+                })
+                .onExceptionResumeNext(i -> getDatabase())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(article -> {
                     mNoData.setVisibility(View.GONE);
                     Log.d(TAG, "onActivityCreated: " + article.toString());
                 }, error -> {
-                    //mNoData.setVisibility(View.VISIBLE);
+                    mNoData.setVisibility(View.VISIBLE);
                     Log.d(TAG, "onActivityCreated: " + error.getMessage());
                     // getDatabase();
                 }, () -> {
@@ -90,6 +105,33 @@ public class HomeFragment extends Fragment {
                     mNoData.setVisibility(View.GONE);
                     mAdapter.dataUpdate(mArticles);
                 });
+    }
+
+    @SuppressLint("CheckResult")
+    private void getDatabase() {
+        mArticleDao.getHeadlines()
+                .subscribeOn(Schedulers.io())
+                .flatMap(Flowable::fromIterable)
+                .doOnNext(article -> mArticles.add(article))
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(article -> {
+                    Log.d(TAG, "getDatabase: " + article.toString());
+                    mArticles.add(article);
+                    if (mArticles.size() == 0) {
+                        Log.d(TAG, "getDatabase: completed");
+                        mNoData.setVisibility(View.VISIBLE);
+                    } else {
+                        Log.d(TAG, "getDatabase: completed");
+                        mNoData.setVisibility(View.GONE);
+                        mAdapter.dataUpdate(mArticles);
+                    }
+                }, error -> {
+
+                }, () -> {
+
+                });
+
+
     }
 
     private class HeadlineAdapter extends RecyclerView.Adapter<HomeFragment.ViewHolder> {
