@@ -3,4 +3,9 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
+    <string name="no_data">We are sorry, but we couldn\'t load any data.</string>
+    <string name="news_title">Brexit Live Updates: Parliament Votes to Delay Britain\'s E.U. Departure</string>
+    <string name="description">Unable to agree among themselves on Brexit terms, British lawmakers directed the government to ask the European Union to delay the March 29 deadline.</string>
+    <string name="update_date">update: 2019–03–14T18:29:37Z</string>
+    <string name="source">New York Times</string>
 </resources>
